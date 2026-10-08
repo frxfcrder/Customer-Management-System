@@ -1,0 +1,234 @@
+{
+  "generated_at": "2026-10-08T12:35:58.624233+00:00",
+  "source": "Base.metadata",
+  "tables": {
+    "customers": [
+      {
+        "name": "id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": true,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "name",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "email",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "primary_key": false,
+        "unique": true,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "phone",
+        "type": "VARCHAR(20)",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "created_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      }
+    ],
+    "orders": [
+      {
+        "name": "id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": true,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "customer_id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "total_amount",
+        "type": "NUMERIC(10, 2)",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": "ScalarElementColumnDefault(0.0)",
+        "server_default": null
+      },
+      {
+        "name": "status",
+        "type": "VARCHAR(50)",
+        "nullable": false,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": "ScalarElementColumnDefault('pending')",
+        "server_default": null
+      },
+      {
+        "name": "payment_status",
+        "type": "VARCHAR(50)",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": "ScalarElementColumnDefault('unpaid')",
+        "server_default": null
+      },
+      {
+        "name": "created_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      }
+    ],
+    "categories": [
+      {
+        "name": "id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": true,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "name",
+        "type": "VARCHAR(255)",
+        "nullable": false,
+        "primary_key": false,
+        "unique": true,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "created_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      }
+    ],
+    "category_customers": [
+      {
+        "name": "id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": true,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "category_id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "customer_id",
+        "type": "INTEGER",
+        "nullable": false,
+        "primary_key": false,
+        "unique": false,
+        "index": true,
+        "default": null,
+        "server_default": null
+      },
+      {
+        "name": "created_at",
+        "type": "DATETIME",
+        "nullable": true,
+        "primary_key": false,
+        "unique": false,
+        "index": false,
+        "default": null,
+        "server_default": "now()"
+      }
+    ]
+  }
+}

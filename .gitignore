@@ -1,0 +1,38 @@
+# Env / secrets - never commit
+.env
+backend/.env
+*.env
+
+# Virtual envs
+venv/
+.venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# DB / local
+*.db
+*.sqlite3
+*.log
+
+# Secrets / certs (never commit)
+*.pem
+*.key
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
