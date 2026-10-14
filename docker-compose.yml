@@ -26,6 +26,9 @@ services:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-customer_management}
+      FRONTEND_DIR: /frontend
+    volumes:
+      - ./frontend/dist:/frontend:ro
     ports:
       - "8000:8000"
     depends_on:
