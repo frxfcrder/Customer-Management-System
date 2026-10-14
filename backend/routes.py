@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from models import Category, Customer, Order
-from schemas import CustomerCreate, CustomerUpdate, LoginRequest, OrderStatusUpdate
+from models import Category, Customer, Order, User
+from schemas import (
+    CustomerCreate,
+    CustomerUpdate,
+    LoginRequest,
+    OrderStatusUpdate,
+    RegisterRequest,
+)
 from services.auth import AuthService
 from services.db import get_db
 
@@ -12,19 +18,51 @@ router = APIRouter(prefix="/api")
 require_auth = Depends(auth_service.get_current_user)
 
 
+def user_to_dict(user: User) -> dict:
+    return {"id": user.id, "name": user.name, "email": user.email}
+
+
 @router.get("/health")
 def api_health():
     return {"status": "ok"}
 
 
 # Authentication
+@router.post("/auth/register", status_code=201)
+def register(data: RegisterRequest, db: Session = Depends(get_db)):
+    """Create an account and return a JWT."""
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
+
+    user = auth_service.create_user(db, data.email, data.password, data.name or "")
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
+    db.refresh(user)
+
+    response = auth_service.generate_token(user.email, user.name or "", user.id)
+    return {**response, "user": user_to_dict(user)}
+
+
 @router.post("/auth/login")
-def login(credentials: LoginRequest):
-    """Login endpoint: returns a JWT on success."""
-    ok, message = auth_service.authenticate_user(credentials.email, credentials.password)
-    if not ok:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message)
-    return auth_service.generate_token(credentials.email)
+def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    """Login endpoint: returns a JWT when the credentials match a user."""
+    user = auth_service.authenticate_user(db, credentials.email, credentials.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return auth_service.generate_token(user.email, user.name or "", user.id)
+
+
+@router.get("/auth/me")
+def current_user(user: User = Depends(auth_service.get_current_user)):
+    """Return the authenticated user."""
+    return user_to_dict(user)
 
 
 # Customers

@@ -149,6 +149,17 @@ tbody tr.clickable:hover { background: var(--bg); }
 
 .error { color: var(--danger); font-size: 13px; margin: 8px 0 0; }
 
+.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.link:hover { text-decoration: underline; }
+
 .pager { display: flex; align-items: center; gap: 6px; }
 .filters { display: flex; align-items: center; gap: 12px; }
 

@@ -2,7 +2,7 @@
 
 REST API + web UI for managing customers, orders, and categories.
 
-- **Backend:** FastAPI, SQLAlchemy 2, PostgreSQL, JWT auth (`python-jose`)
+- **Backend:** FastAPI, SQLAlchemy 2, PostgreSQL, JWT auth (`python-jose`) + bcrypt
 - **Frontend:** React 19 + TypeScript, built with Vite (served by FastAPI — no CORS needed)
 - **Infra:** Docker Compose (Postgres + API)
 
@@ -12,6 +12,8 @@ REST API + web UI for managing customers, orders, and categories.
 - Orders per customer, status filter, and status updates
 - Category listing
 - JWT-protected write endpoints; browsing is public
+- User accounts: registration and login against the `users` table, bcrypt password
+  hashing, JWT bearer tokens
 - Swagger UI at `/docs`, health check at `/health`
 
 ## Quick start (Docker)
@@ -83,7 +85,9 @@ All bodies are JSON. Endpoints marked 🔒 require `Authorization: Bearer <token
 
 | Method | Path | Description |
 | --- | --- | --- |
+| POST | `/api/auth/register` | Create an account `{name?, email, password}` (min 8 chars) → `{access_token, token_type, user}` |
 | POST | `/api/auth/login` | `{email, password}` → `{access_token, token_type}` |
+| GET | `/api/auth/me` 🔒 | The authenticated user |
 | GET | `/api/customers` | Paginated list → `{data, total_count, page, size}` |
 | POST | `/api/customers` 🔒 | Create `{name, email, phone?}` (alias: `POST /api/customers/create`) |
 | GET | `/api/customers/{id}` | Customer detail |
@@ -97,10 +101,14 @@ All bodies are JSON. Endpoints marked 🔒 require `Authorization: Bearer <token
 | GET | `/health` | DB-backed health check (also at `/api/health`) |
 
 ```bash
-# example
+# example — create an account, then use its token to add a customer
+curl -s -X POST localhost:8000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"You","email":"you@example.com","password":"supersecret1"}'
+
 TOKEN=$(curl -s -X POST localhost:8000/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"you@example.com","password":"secret"}' | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+  -d '{"email":"you@example.com","password":"supersecret1"}' | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 curl -s -X POST localhost:8000/api/customers \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
@@ -109,7 +117,7 @@ curl -s -X POST localhost:8000/api/customers \
 
 > Windows note: PowerShell mangles JSON passed to `curl.exe`. Use `Invoke-RestMethod`
 > instead:
-> `Invoke-RestMethod -Uri http://localhost:8000/api/auth/login -Method Post -ContentType 'application/json' -Body '{"email":"you@example.com","password":"secret"}'`
+> `Invoke-RestMethod -Uri http://localhost:8000/api/auth/login -Method Post -ContentType 'application/json' -Body '{"email":"you@example.com","password":"supersecret1"}'`
 
 ## Tests
 
@@ -117,7 +125,8 @@ curl -s -X POST localhost:8000/api/customers \
 venv\Scripts\python -m pytest tests -q     # macOS/Linux: python -m pytest tests -q
 ```
 
-Covers the health check, model registration, JWT round-trip, and DB session factory.
+Covers the health check, model registration, JWT round-trip, DB session factory, and the
+auth flow (registration, login, token-protected writes, password hashing).
 An instance of Postgres must be reachable for the health check.
 
 ## Project structure
@@ -128,8 +137,8 @@ An instance of Postgres must be reachable for the health check.
 │   ├── routes.py           # All /api endpoints
 │   ├── schemas.py          # Pydantic request bodies
 │   ├── config.py           # Env-based configuration
-│   ├── models/             # SQLAlchemy models (Customer, Order, Category)
-│   └── services/           # db (engine/session) + auth (JWT)
+│   ├── models/             # SQLAlchemy models (Customer, Order, Category, User)
+│   └── services/           # db (engine/session) + auth (JWT + bcrypt)
 ├── frontend/               # React + TS app (Vite)
 │   ├── src/
 │   │   ├── App.tsx         # Tabs, session, toasts
@@ -142,8 +151,10 @@ An instance of Postgres must be reachable for the health check.
 
 ## Notes & limitations
 
-- `AuthService.authenticate_user` is a placeholder: it validates the email format and
-  that a password was supplied, but there is no user table yet — any credentials mint a
-  token. Wire it to a `users` table (and switch to bcrypt/argon2) before production.
+- Login is backed by the `users` table: register the first account from the UI
+  ("Create one") or via `POST /api/auth/register`. Passwords are hashed with bcrypt
+  (per-password salt); tokens are HS256 JWTs valid for `ACCESS_TOKEN_EXPIRE_MINUTES`.
+- Tokens stay valid until they expire even after a password change — add a token
+  revocation / password-change flow before production.
 - Orders and categories are read-only over the API; no create/delete endpoints yet.
-- Passwords are hashed with salted SHA-256 (placeholder — swap for bcrypt/argon2).
+- Set a long random `SECRET_KEY` in production — the default is only for local dev.
